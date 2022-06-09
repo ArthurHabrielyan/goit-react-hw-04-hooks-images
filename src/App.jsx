@@ -15,6 +15,7 @@ export const App = () => {
   const [error, setError] = useState(null);
 
   const handlerForSubmit = (searchQuerry) => {
+    setCurrentPage(1);
     setImageSearcher(searchQuerry);
   };
 
@@ -47,11 +48,18 @@ export const App = () => {
   };
 
   useEffect(() => {
-    setCurrentPage(1);
-    onLoadImage(true);
+    if (!imageSearcher) {
+      return;
+    } else {
+      setArrOfResult([]);
+      onLoadImage(true);
+    }
   }, [imageSearcher]);
 
   useEffect(() => {
+    if (currentPage === 1) {
+      return;
+    }
     onLoadImage(false);
   }, [currentPage]);
 
