@@ -27,36 +27,27 @@ export const App = () => {
     setCurrentPage(currentPage + 1);
   };
 
-  const onLoadImage = () => {
+  const onLoadImage = (anotherImages) => {
     setIsLoading(true);
 
     getData(imageSearcher, currentPage)
       .then(({ hits }) => {
-        setArrOfResult([
-          ...arrOfResult,
-          ...hits.map(({ id, webformatURL, largeImageURL }) => ({
-            id,
-            webformatURL,
-            largeImageURL,
-          })),
-        ]);
-      })
-      .catch((error) => setError(error))
-      .finally(() => setIsLoading(false));
-  };
-
-  const onLoadMoreImage = () => {
-    setIsLoading(true);
-
-    getData(imageSearcher, currentPage)
-      .then(({ hits }) => {
-        setArrOfResult(
-          hits.map(({ id, webformatURL, largeImageURL }) => ({
-            id,
-            webformatURL,
-            largeImageURL,
-          }))
-        );
+        anotherImages
+          ? setArrOfResult(
+              hits.map(({ id, webformatURL, largeImageURL }) => ({
+                id,
+                webformatURL,
+                largeImageURL,
+              }))
+            )
+          : setArrOfResult([
+              ...arrOfResult,
+              ...hits.map(({ id, webformatURL, largeImageURL }) => ({
+                id,
+                webformatURL,
+                largeImageURL,
+              })),
+            ]);
       })
       .catch((error) => setError(error))
       .finally(() => setIsLoading(false));
@@ -65,14 +56,14 @@ export const App = () => {
   useEffect(() => {
     if (imageSearcher && forSearch.current) {
       setArrOfResult([]);
-      onLoadMoreImage();
+      onLoadImage(true);
       forSearch.current = false;
     }
 
     if (currentPage === 1) {
       return;
     } else {
-      onLoadImage();
+      onLoadImage(false);
     }
   }, [currentPage, imageSearcher]);
 
