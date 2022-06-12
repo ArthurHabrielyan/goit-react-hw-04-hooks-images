@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "./Components/Button";
 import { ImageGallery } from "./Components/ImageGallery";
 import { Searchbar } from "./Components/Searchbar ";
@@ -14,54 +14,69 @@ export const App = () => {
   const [largeImageURL, setLargeImageURL] = useState("");
   const [error, setError] = useState(null);
 
+  const forSearch = useRef(true);
+
   const handlerForSubmit = (searchQuerry) => {
     setCurrentPage(1);
     setImageSearcher(searchQuerry);
+    forSearch.current = true;
   };
 
-  const handlerForPerPage = () => setCurrentPage(currentPage + 1);
+  const handlerForPerPage = (event) => {
+    event.preventDefault();
+    setCurrentPage(currentPage + 1);
+  };
 
-  const onLoadImage = (anotherImages) => {
+  const onLoadImage = () => {
     setIsLoading(true);
 
     getData(imageSearcher, currentPage)
       .then(({ hits }) => {
-        anotherImages
-          ? setArrOfResult(
-              hits.map(({ id, webformatURL, largeImageURL }) => ({
-                id,
-                webformatURL,
-                largeImageURL,
-              }))
-            )
-          : setArrOfResult([
-              ...arrOfResult,
-              ...hits.map(({ id, webformatURL, largeImageURL }) => ({
-                id,
-                webformatURL,
-                largeImageURL,
-              })),
-            ]);
+        setArrOfResult([
+          ...arrOfResult,
+          ...hits.map(({ id, webformatURL, largeImageURL }) => ({
+            id,
+            webformatURL,
+            largeImageURL,
+          })),
+        ]);
+      })
+      .catch((error) => setError(error))
+      .finally(() => setIsLoading(false));
+  };
+
+  const onLoadMoreImage = () => {
+    setIsLoading(true);
+
+    getData(imageSearcher, currentPage)
+      .then(({ hits }) => {
+        setArrOfResult(
+          hits.map(({ id, webformatURL, largeImageURL }) => ({
+            id,
+            webformatURL,
+            largeImageURL,
+          }))
+        );
       })
       .catch((error) => setError(error))
       .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
-    if (!imageSearcher) {
-      return;
-    } else {
+    if (imageSearcher && forSearch.current) {
       setArrOfResult([]);
-      onLoadImage(true);
+      onLoadMoreImage();
+      forSearch.current = false;
     }
-  }, [imageSearcher]);
 
-  useEffect(() => {
     if (currentPage === 1) {
       return;
+    } else {
+      onLoadImage();
     }
-    onLoadImage(false);
-  }, [currentPage]);
+  }, [currentPage, imageSearcher]);
+
+  // useEffect(() => {}, [currentPage]);
 
   const onToggleModal = () => {
     setShowModal((showModal) => !showModal);
